@@ -1,5 +1,11 @@
 # ml_regression_core
-A package for machine learning regression to predict permeability
+A package for machine learning regression to predict permeability.
+
+The following techniaues have been deployed here:
+
+- Augmented decision tree 
+- Decision tree regression, 
+- Enhanced gradientalgorithms
 
 Please cite this paper if you endup using these resoures here.
 
