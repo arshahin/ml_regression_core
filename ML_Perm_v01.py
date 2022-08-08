@@ -25,7 +25,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
-# اين كلاس براي مدل گروهي تعريف ده كه يك فايل جداگانه دارد كه لازم است به پروژه اضافه شود
+
+
 class ensmodel:
     def __init__(self, models, weights=None):
         self.n = len(models)
@@ -40,25 +41,27 @@ class ensmodel:
         for i in range(1, self.n): pred +=       self.weights[i]*self.models[i].predict(x)
         return pred
 
-# فايل ورودي
+# Input data
+
 #df = pd.read_csv (r'.\DCORE.cSV')
 df = pd.read_csv (r'.\DCORE.csv')
 # چاپ دو خط اول فايل جهت تست
 print(df.head(2))
 
-# تعيين مقدار X,Y
+# X and Y values 
+
 y = df.iloc[:, [11]].values
 scaler = MinMaxScaler()
 x = df.iloc[:, [2,3,4,5,6,7,8,10]].values
 
-# استانداردسازي داده
+# Data scaling 
+
 scaled = scaler.fit_transform(x)
 #print(scaled)
 x=scaled
 
 
-# define the model  20 درصد را براي مجموعه آزمايش  تعيين مي كنيم
-
+# define the model parameters
 validation_size=0.20
 best_acc=0
 num_fold=10
@@ -67,16 +70,17 @@ num_fold=10
 
 
 print("-------------//////////////////////////////---------------")
-# ماتريسهاي آموزش و آزمايش را تعيين مي كنيم
+# Define training and test datasets
 X_train,X_validation,Y_train,Y_validation=train_test_split(x,y,test_size=validation_size,random_state=8)
 
-# الگوريتم درخت تصميم را بر روي مجموعه آموزش اعمال مي كنيم
+# DTR 
 xg=DecisionTreeRegressor(criterion='squared_error',max_depth=8, random_state=4)
 xg.fit(np.real(X_train),np.ravel(Y_train))
 y_p=xg.predict(X_validation)
 print("DTR:", r2_score(Y_validation,y_p)*100)
    
-# (كار اضافه انجام داديم مي تواند نباشد براي اينكه نتايج تك تك را ببينيم) الگوريتم درخت تصميم افزوده  را بر روي مجموعه آموزش اعمال مي كنيم
+# ETR
+
 X_train,X_validation,Y_train,Y_validation=train_test_split(x,y,test_size=validation_size,random_state=4)
 model = ExtraTreesRegressor(n_estimators=400, random_state=4,criterion='absolute_error')
 model.fit(np.real(X_train),np.ravel(Y_train)) 
@@ -84,7 +88,7 @@ y_pred = model.predict(X_validation)
 print("ETR",r2_score(Y_validation,y_pred)*100)
 
 
-#  الگوريتم گراديان تقويت شده را بر روي مجموعه آموزش اعمال مي كنيم(كار اضافه انجام داديم مي تواند نباشد براي اينكه نتايج تك تك را ببينيم)
+#  GBR
 X_train,X_validation,Y_train,Y_validation=train_test_split(x,y,test_size=validation_size,random_state=21)   
 gb=GradientBoostingRegressor(n_estimators=450, random_state=21,loss='lad',max_depth=8) 
 gb.fit(np.real(X_train),np.ravel(Y_train))
@@ -92,7 +96,7 @@ ygb = gb.predict(X_validation)
 print("GBR",r2_score(Y_validation,ygb)*100)
 
    
-# الگوريتم درخت تصميم  را با درخت تصميم افزوده  و الگوريتم گراديان تقويت شده تركيب كرده  و تركيب آنها را بر روي مجموعه آموزش اعمال مي كنيم
+# Ensemble 
 green = ensmodel([model, xg], [0.9, 0.1])
 m=ensmodel([green, gb], [0.9, 0.1])
 yens=m.predict(np.real(X_validation))
@@ -101,7 +105,7 @@ print("MSE:", mean_squared_error(Y_validation,yens))
 print("MAE:", mean_absolute_error(Y_validation,yens))
 
 
-# نتايج تخمين را در فايل اكسل ذخيره مي كنيم
+# Save the results in CSV
 result = np.column_stack((Y_validation,yens))
 import xlsxwriter
 
